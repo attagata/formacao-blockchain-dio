@@ -1,33 +1,66 @@
-//importando as dependencias
-const bip32 = require('bip32')
-const bip39 = require('bip39')
-const bitcoin = require('bitcoinjs-lib')
+// Importando as dependências
+const bip32 = require('bip32');
+const bip39 = require('bip39');
+const bitcoin = require('bitcoinjs-lib');
 
-//definir a rede
-//bitcoin - rede principal - mainnet
-//testnet - rede de teste - tesnet
-const network = bitcoin.networks.testnet
+// Configuração de rede (mainnet ou testnet)
+const isTestnet = true;
+const network = isTestnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
 
-//derivação de carteiras HD
-const path = `m/49'/1'/0'/0` 
+// Derivação de carteiras HD
+const path = `m/49'/1'/0'/0`;
 
-//criando o mnemonic para a seed (palavras de senha)
-let mnemonic = bip39.generateMnemonic()
-const seed = bip39.mnemonicToSeedSync(mnemonic)
+// Gerando o mnemonic para a seed (palavras de senha)
+let mnemonic = bip39.generateMnemonic();
 
-//criando a raiz da cartiera HD
-let root = bip32.fromSeed(seed, network)
+// Validando o mnemonic
+if (!bip39.validateMnemonic(mnemonic)) {
+    throw new Error("Mnemonic inválido. Por favor, gere novamente.");
+}
 
-//criando uma conta - par pvt-pub keys
-let account = root.derivePath(path)
-let node = account.derive(0).derive(0)
+const seed = bip39.mnemonicToSeedSync(mnemonic);
 
+// Criando a raiz da carteira HD
+let root = bip32.fromSeed(seed, network);
+
+// Criando uma conta - par pvt-pub keys
+let account = root.derivePath(path);
+let node = account.derive(0).derive(0);
+
+// Gerando o endereço BTC
 let btcAddress = bitcoin.payments.p2pkh({
     pubkey: node.publicKey,
     network: network,
-}).address
+}).address;
 
-console.log("Carteira gerada")
-console.log("Endereço: ", btcAddress)
-console.log("Chave privada:", node.toWIF())
-console.log("Seed:", mnemonic)
+// Exibindo as informações da carteira
+console.log("Carteira gerada");
+console.log("Endereço:", btcAddress);
+console.log("Chave privada (WIF):", node.toWIF());
+console.log("Seed:", mnemonic);
+
+// Função para selecionar a rede (mainnet ou testnet)
+function selectNetwork(isTestnet) {
+    return isTestnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
+}
+
+// Função para derivar o caminho
+function derivePath(root, path) {
+    return root.derivePath(path);
+}
+
+// Função para gerar endereço BTC
+function generateBTCAddress(node, network) {
+    return bitcoin.payments.p2pkh({
+        pubkey: node.publicKey,
+        network: network,
+    }).address;
+}
+
+// Função para validar mnemonic
+function validateMnemonic(mnemonic) {
+    if (!bip39.validateMnemonic(mnemonic)) {
+        throw new Error("Mnemonic inválido. Por favor, gere novamente.");
+    }
+    return bip39.mnemonicToSeedSync(mnemonic);
+}
