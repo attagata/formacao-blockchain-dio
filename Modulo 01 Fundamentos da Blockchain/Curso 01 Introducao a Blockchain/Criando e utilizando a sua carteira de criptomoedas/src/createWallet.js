@@ -34,7 +34,7 @@ let btcAddress = bitcoin.payments.p2pkh({
 }).address;
 
 // Exibindo as informações da carteira
-console.log("Carteira gerada");
+console.log("Carteira gerada!");
 console.log("Endereço:", btcAddress);
 console.log("Chave privada (WIF):", node.toWIF());
 console.log("Seed:", mnemonic);
